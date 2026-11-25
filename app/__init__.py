@@ -69,5 +69,13 @@ class _RequestIdFilter(logging.Filter):
                 if ping():
                     return ok ({'database':'ok'}, 'Helthy')
                 return jsonify({'success': False, 'data': {'database':'unavailable'},'message':'Database unavailable'}),503
-
+            if not app.config.get('TESTING'):
+                with app.app_context():
+                    try :
+                        ensure_indexes(get_db())
+                    except PyMongoError:
+                            app.logger.warnig('MongoDB ureachable at startup; indexes were not ensured.')
+                        #[M3] sweep tickets that wre left unfinished by a crash
+                        #[M7] start the mantenance loop
+                    return app
 
